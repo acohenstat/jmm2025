@@ -279,8 +279,6 @@ res %>%
   theme_apa()+
   facet_wrap(~wsize)
 
-
-
 ```
 
 ## References {.tiny}
