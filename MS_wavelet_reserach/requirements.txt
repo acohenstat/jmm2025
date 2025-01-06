@@ -1,0 +1,8 @@
+pandas==2.2.2
+numpy==1.26.4
+pywt==1.6.0
+scipy==1.13.0
+statsmodels==0.14.4
+sklearn==1.4.2
+xgboost==2.0.3
+imblearn==0.12.2

@@ -1,8 +1,36 @@
 /*-- scss:defaults --*/
 
-$body-bg: #1E1E1E !default;
-$body-color: #fff !default;
-$link-color: #04B46D !default;
+$body-bg: #fff !default;
+$body-color: #004C97 !default;
+$link-color: #FFB81C !default;
 $font-family-sans-serif: arial, "open sans", "helvetica neue", helvetica, sans-serif !default;
 $mermaid-font-family: arial;
 /*-- scss:rules --*/
+
+.title {
+  font-size: 80px !important;
+  color: #004C97 !important;
+}
+
+.quarto-title-author-name {
+  font-size: 40px;
+  color: #4FB81C !important;
+}
+
+.date {
+  font-size: 50px;
+  color: green !important;
+}
+
+
+.reveal .slide-logo {
+  height: 80px !important;
+  width: 90px !important;
+  max-width: unset !important;
+  max-height: unset !important;
+}
+
+.reveal .footer > * {
+	/*--background-color: #006682;--*/
+	color: #004C97;
+}

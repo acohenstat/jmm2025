@@ -6,3 +6,10 @@ $link-color: #03A062 !default;
 $font-family-sans-serif: arial, "open sans", "helvetica neue", helvetica, sans-serif !default;
 $mermaid-font-family: arial;
 /*-- scss:rules --*/
+
+.reveal .slide-logo {
+  height: 100px !important;
+  width: 100px !important;
+  max-width: unset !important;
+  max-height: unset !important;
+}
