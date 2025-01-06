@@ -15,16 +15,40 @@ res = read.csv("MS_wavelet_reserach/final_result.csv") %>%
 
 
 res |> 
-  select(model, proc, precision, recall, F1.score, accuracy) |> 
-  pivot_longer(cols=-c(model,proc), names_to = "metric", values_to = "value") %>% 
-  ggplot(aes(x=proc,y=value, col=model,fill=metric)) +
+  select(model, wavelet, precision, recall, F1.score, accuracy) |> 
+  pivot_longer(cols=-c(model,wavelet), names_to = "metric", values_to = "value") %>% 
+  ggplot(aes(x=metric,y=value, col=wavelet)) +
   #geom_point()+
   stat_summary(geom = "point",
                fun = mean,
                size=4)+
   labs(y= "Average value")+
-  theme_apa()
-  #facet_wrap(~metric)
+  theme_apa()+
+  facet_wrap(~model)+
+  labs(title="Performance Metric Values across Model and PROC Types",
+       x="Metric")
+
+
+
+
+res |> 
+  select(model, proc, wavelet, precision, recall, F1.score, accuracy) |> 
+  tbl_strata(
+    strata = proc,
+    .tbl_fun =
+      ~ .x %>%
+      tbl_summary(
+        by = wavelet,
+        type = list(
+          c("recall","accuracy") ~ 'continuous'),
+        statistic = list(all_continuous() ~ "{mean} ± {sd} ({min},{max})"),
+        digits = all_continuous() ~ 2
+      ) %>% 
+      #add_p() %>%
+      #bold_p() %>% 
+      #add_overall %>%
+      bold_labels )
+
 
 res %>% 
   select(model,precision, recall, F1.score, accuracy_test, Preprocess) %>%
@@ -55,4 +79,18 @@ res %>%
   bold_p() %>% 
   #add_overall %>%
   bold_labels 
+
+
+library(betareg)
+
+res |> 
+  mutate(mlmodel = model) |> 
+  select(mlmodel, proc, wsize, wavelet, Oversample, accuracy) -> df_model
+
+beta_model <- betareg(accuracy ~ wavelet , data = unique(df_model))
+
+tbl_regression(beta_model)
+performance::check_model(beta_model)
+library(lmtest)
+lrtest(beta_model)
 

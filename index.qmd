@@ -29,21 +29,20 @@ format:
           theme: neutral
           fontFamily: arial
           curve: linear
-    html:
-        theme: [default, niu-dark.scss]
-        logo: img/logo_niu_dark.png
-        date: "2025"
-        toc: true
-        code-overflow: scroll
-        highlight-style: atom-one
-        mermaid: 
-          theme: neutral
-          fontFamily: arial
-          curve: linear
-          margin-left: 0
-        embed-resources: true
-        page-layout: full
-
+    # html:
+    #     theme: [default, niu-dark.scss]
+    #     logo: img/logo_niu_dark.png
+    #     date: "2025"
+    #     toc: true
+    #     code-overflow: scroll
+    #     highlight-style: atom-one
+    #     mermaid: 
+    #       theme: neutral
+    #       fontFamily: arial
+    #       curve: linear
+    #       margin-left: 0
+    #     embed-resources: true
+    #     page-layout: full
 ---
 
 ## Outline
@@ -180,9 +179,7 @@ Variables of the experimental design:
 
 -   Two sampling: up and no sampling to overcome the imbalance classes
 
--   Repeat 100 times each case.
-
-A total of 88000 models were run.
+A total of 8800 models were run.
 
 ## Methods {.smaller}
 
@@ -195,6 +192,46 @@ A total of 88000 models were run.
 -   Processing 3 (PROC3): Same as PROC1 but without the wavelet transform.
 
 -   Processing 4 (PROC4): Same as PROC2 but without the wavelet transform.
+
+## Methods {.smaller}
+
+#### The PCA-Hotelling $T^2$ statistic
+
+Consider a normalized data matrix, with $p$ variables and $N$ observations:
+
+$$
+\textbf{Z}= \left(\begin{array}{cccc}z_{11} & z_{12} & \dots &z_{1p}\\ z_{21} & z_{22} & \dots &z_{2p}\\  \vdots & \vdots & \ddots & \vdots \\ z_{N1} & z_{N2} & \dots & z_{Np}\end{array}\right)
+$$
+
+The covariance matrix of $Z$ can be approximated as:
+
+$$
+S= \frac{1}{N-1}Z^{T}Z= P \Lambda P^{T}
+$$
+
+where $\Lambda= diag (\lambda_1, \lambda_2, ..., \lambda_p)$ with $\lambda_1 \ge \lambda_2 \ge ..., \ge \lambda_p$. $\lambda_i$ are the eigenvalues and P are the eigenvectors of $S$.
+
+## Methods {.smaller}
+
+#### The PCA-Hotelling $T^2$ statistic
+
+According to $\lambda_i$'s, $P$ and $\Lambda$ could be divided into a feature space (\textit{feat}) and a residual space (\textit{res}). We can then rewrite $P$ and $\Lambda$ as follows:
+
+$$
+P= \left[\begin{array}{cc} P_{feat} & P_{res}\end{array}\right]
+$$
+
+$$
+\Lambda= \left[\begin{array}{cc}\Lambda_{feat} & 0 \\ 0 & \Lambda_{res}\end{array}\right]
+$$
+
+The Hotelling $T^2$ statistic can then be computed as follows:
+
+$$
+{T^2}= Z P_{feat} \Lambda^{-1}_{feat} P^T_{feat} Z^{T} \tag{4}
+$$
+
+where $T^2$ is the Hotelling statistic calculated into the multivariate feature space of the principal component analysis, and $P^T$ is the transpose of $P$.
 
 ## Methods
 
@@ -215,8 +252,7 @@ Observed 32,768 m/z values / 33,885 m/z values
 
 Link: <https://bioinformatics.mdanderson.org/public-datasets/>
 
-## Results 
-Performance across Processing
+## Results {.smaller}
 
 ```{r}
 library(gtsummary)
@@ -238,54 +274,69 @@ res = read.csv("MS_wavelet_reserach/final_result.csv") %>%
          across(where(is.character),as.factor)) |> 
   select(res_id, model, wavelet, Oversample, proc, wsize, precision, recall, F1.score, accuracy) 
 
-res %>%
-  tbl_strata(
-    strata = proc,
-    .tbl_fun =
-      ~ .x %>%
-  tbl_summary(
-    by = Oversample,
-    type = list(
-      c("recall","accuracy") ~ 'continuous'),
-    statistic = list(all_continuous() ~ "{mean} ± {sd} ({min},{max})"),
-    digits = all_continuous() ~ 2
-  ) %>% 
-  #add_p() %>%
-  #bold_p() %>% 
-  #add_overall %>%
-  bold_labels )
-
-
-```
-
-All PROC seems to perform similarly across!
-
-## Results 
-Performance across window sizes
-
-
-```{r}
-res %>% 
-  mutate(accuracy= accuracy_test, 
-         proc=Preprocess) %>% 
-  mutate(proc = recode(proc, preprocess1 = 'PROC1', 
-                       preprocess2 = 'PROC2',
-                       preprocess3 = 'PROC3',
-                       preprocess4 = 'PROC4'),
-         Oversample = recode(Oversample, 
-                             "0" = 'Nosampling', 
-                             "1" = 'Upsampling')) %>% 
-  select(precision, recall, F1.score, accuracy, proc, wsize) %>%
-    pivot_longer(cols=-c(wsize,proc), names_to = "metric", values_to = "value") %>% 
-  ggplot(aes(x=proc,y=value, col=metric)) +
+res |> 
+  select(model, proc, precision, recall, F1.score, accuracy) |> 
+  pivot_longer(cols=-c(model,proc), names_to = "metric", values_to = "value") %>% 
+  ggplot(aes(x=metric,y=value, col=proc)) +
+  #geom_point()+
   stat_summary(geom = "point",
                fun = mean,
-               size=3)+
+               size=4)+
   labs(y= "Average value")+
   theme_apa()+
-  facet_wrap(~wsize)
+  facet_wrap(~model)+
+  labs(title="Performance Metric Values across Model and PROC Types",
+       x="Metric")
+```
+
+PROC3 seems to have the highest values across all models and metrics.
+
+## Results {.smaller}
+
+```{r}
+res |> 
+  select(model, proc, wsize, accuracy) |> 
+  ggplot(aes(x=wsize,y=accuracy)) +
+  #geom_point()+
+  stat_summary(geom = "point",
+               fun = mean,
+               size=4)+
+  geom_smooth(method = "lm")+
+  labs(y= "Average value")+
+  scale_x_continuous(breaks = unique(res$wsize))+
+  theme_apa()+
+  #facet_wrap(~model)+
+  labs(title="Accuracy across Window Size",
+       x="Window Size")
 
 ```
+
+The larger the sample size, the higher the average accuracy. (not controlling for other variables)
+
+## Results {.smaller}
+
+## Conclusions {.smaller}
+
+- The wavelet coefficients do not always lead to improved performance. 
+
+- Additionally, **autocorrelations** do not appear to be effective predictors, which is anticipated for wavelet coefficients.
+
+Future work
+
+- Enhance the evaluation using Monte Carlo simulation.
+- Identify new datasets to test the methodology.
+- Incorporate additional wavelet families.
+
+
+## Thank you {.smaller}
+
+
+- Contact: M.C.: mjc106@students.uwf.edu and A. C.: acohen@uwf.edu 
+<!-- - ![](img/csda){fig-align="left" width=100}  -->
+- *Announcement*: Special Issue on Statistical Monitoring and AI Models. **Deadline June 2025.**
+
+![](img/special){fig-align="center" width=350} 
+
 
 ## References {.tiny}
 
