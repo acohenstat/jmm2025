@@ -174,7 +174,7 @@ Variables of the experimental design:
 
 -   Four ML Models: Logistic Regression, Support Vector Machine, Random Forest, and XGboost.
 
--   Two sampling: Over and under sampling to overcome the imbalance classes
+-   Two sampling: up and down sampling to overcome the imbalance classes
 
 -   Repeat 100 times each case.
 
@@ -196,9 +196,9 @@ A total of 88000 models were run.
 
 The performance metrics utilized were:
 
--   Specificity
--   Sensitivity
--   F-score
+-   Recall
+-   Precision
+-   F1-score
 -   Accuracy
 
 ## Data sets
@@ -212,7 +212,7 @@ Observed 32,768 m/z values / 33,885 m/z values
 Link: <https://bioinformatics.mdanderson.org/public-datasets/>
 
 ## Results 
-### 
+Performance across Processing
 
 ```{r}
 library(gtsummary)
@@ -248,6 +248,37 @@ tbl_strata(
   #bold_p() %>% 
   #add_overall %>%
   bold_labels )
+
+
+```
+
+All PROC seems to perform similarly across ML techniques, etc.
+
+## Results 
+Performance across window sizes
+
+
+```{r}
+res %>% 
+  mutate(accuracy= accuracy_test, 
+         proc=Preprocess) %>% 
+  mutate(proc = recode(proc, preprocess1 = 'PROC1', 
+                       preprocess2 = 'PROC2',
+                       preprocess3 = 'PROC3',
+                       preprocess4 = 'PROC4'),
+         Oversample = recode(Oversample, 
+                             "0" = 'Downsample', 
+                             "1" = 'Upsample')) %>% 
+  select(precision, recall, F1.score, accuracy, proc, wsize) %>%
+    pivot_longer(cols=-c(wsize,proc), names_to = "metric", values_to = "value") %>% 
+  ggplot(aes(x=proc,y=value, col=metric)) +
+  stat_summary(geom = "point",
+               fun = mean,
+               size=3)+
+  labs(y= "Average value")+
+  theme_apa()+
+  facet_wrap(~wsize)
+
 
 
 ```
