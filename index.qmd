@@ -331,11 +331,11 @@ Future work
 ## Thank you {.smaller}
 
 
-- Contact: M.C.: mjc106@students.uwf.edu and A. C.: acohen@uwf.edu 
+- Contact: M.C.: mjc106@students.uwf.edu and A.C.: acohen@uwf.edu 
 <!-- - ![](img/csda){fig-align="left" width=100}  -->
 - *Announcement*: Special Issue on Statistical Monitoring and AI Models. **Deadline June 2025.**
 
-![](img/special){fig-align="center" width=350} 
+![](img/special){fig-align="center" width=300} 
 
 
 ## References {.tiny}
