@@ -135,13 +135,17 @@ Example: Morlet Wavelet $\psi(t) = e^{i2 \pi f_0t} e^{-(\alpha t^2/\beta^2)}$, w
 ## Related Work {.smaller}
 
 -   Ovarian cancer detection [@ovarian2005]: A combination of *Binning*, *Kolmogorov-Smirnov test*, *discrete wavelet transform*, and *support vector machines.*
+
 -   Proteomic profile with bi-orthogonal discrete wavelet transform [@schleif2009support]: A combination of *outlier detection-centroied-based*, *recalibration*, baseline correction (top-hat filter), *Kolmogorov-Smirnov test, discrete wavelet transform bior 3.7*, and *support vector machines.*
+
 -   Ovarian cancer detection using peaks and discrete wavelet transform [@du2009wavelet]: A combination of *discrete wavelet transform*, *thresholding*, *peak detection* using MAD, *Kolmogorov-Smirnov test, bagging predictor*.
 
 ## Related Work {.smaller}
 
 -   Ovarian cancer classification using wavelets and genetic algorithm [@nguyen2015mass]: A combination of Haar *discrete wavelet transform*, *genetic algorithms.*
+
 -   Breat cancer mass spectrum classification [@Cohen2018]: A combination of *segmentation, discrete wavelet transform, statistical features on the coefficients, PCA-T2 Hotelling statistic, SVM.*
+
 -   Ovarian cancer mass spectrum classification [@vimalajeewa2023early]: A combination of *Daubechies-7 wavelet transform, sample variance and distance variance, Fisher’s criterion for feature extraction, SVM, KNN, and Logistic regression.*
 
 ## Methods {.smaller}
@@ -174,7 +178,7 @@ Variables of the experimental design:
 
 -   Four ML Models: Logistic Regression, Support Vector Machine, Random Forest, and XGboost.
 
--   Two sampling: up and down sampling to overcome the imbalance classes
+-   Two sampling: up and no sampling to overcome the imbalance classes
 
 -   Repeat 100 times each case.
 
@@ -221,19 +225,21 @@ library(jtools)
 library(ggforce)
 
 res = read.csv("MS_wavelet_reserach/final_result.csv") %>% 
-  mutate(wsize= 2^J.Setting) 
-res %>% 
+  mutate(wsize= 2^J.Setting) |> 
   mutate(accuracy= accuracy_test, 
-         proc=Preprocess) %>% 
-  mutate(proc = recode(proc, preprocess1 = 'PROC1', 
+         proc=Preprocess,
+         proc = recode(proc, preprocess1 = 'PROC1', 
                        preprocess2 = 'PROC2',
                        preprocess3 = 'PROC3',
                        preprocess4 = 'PROC4'),
          Oversample = recode(Oversample, 
-                             "0" = 'Downsample', 
-                             "1" = 'Upsample')) %>% 
-  select(precision, recall, F1.score, accuracy, proc,Oversample) %>%
-tbl_strata(
+                             "0" = 'Nosampling', 
+                             "1" = 'Upsampling'),
+         across(where(is.character),as.factor)) |> 
+  select(res_id, model, wavelet, Oversample, proc, wsize, precision, recall, F1.score, accuracy) 
+
+res %>%
+  tbl_strata(
     strata = proc,
     .tbl_fun =
       ~ .x %>%
@@ -252,7 +258,7 @@ tbl_strata(
 
 ```
 
-All PROC seems to perform similarly across ML techniques, etc.
+All PROC seems to perform similarly across!
 
 ## Results 
 Performance across window sizes
@@ -267,8 +273,8 @@ res %>%
                        preprocess3 = 'PROC3',
                        preprocess4 = 'PROC4'),
          Oversample = recode(Oversample, 
-                             "0" = 'Downsample', 
-                             "1" = 'Upsample')) %>% 
+                             "0" = 'Nosampling', 
+                             "1" = 'Upsampling')) %>% 
   select(precision, recall, F1.score, accuracy, proc, wsize) %>%
     pivot_longer(cols=-c(wsize,proc), names_to = "metric", values_to = "value") %>% 
   ggplot(aes(x=proc,y=value, col=metric)) +
