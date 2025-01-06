@@ -212,6 +212,7 @@ Observed 32,768 m/z values / 33,885 m/z values
 Link: <https://bioinformatics.mdanderson.org/public-datasets/>
 
 ## Results 
+### 
 
 ```{r}
 library(gtsummary)
@@ -221,14 +222,32 @@ library(ggforce)
 
 res = read.csv("MS_wavelet_reserach/final_result.csv") %>% 
   mutate(wsize= 2^J.Setting) 
-
 res %>% 
-  select(model,precision, recall, F1.score, accuracy_train, accuracy_test, wavelet) %>%
-  pivot_longer(cols=-c(model,wavelet), names_to = "metric", values_to = "value") %>% 
-  ggplot(aes(x=metric,y=value, col=wavelet)) +
-  geom_violin()+
-  geom_sina()+
-  theme_apa()
+  mutate(accuracy= accuracy_test, 
+         proc=Preprocess) %>% 
+  mutate(proc = recode(proc, preprocess1 = 'PROC1', 
+                       preprocess2 = 'PROC2',
+                       preprocess3 = 'PROC3',
+                       preprocess4 = 'PROC4'),
+         Oversample = recode(Oversample, 
+                             "0" = 'Downsample', 
+                             "1" = 'Upsample')) %>% 
+  select(precision, recall, F1.score, accuracy, proc,Oversample) %>%
+tbl_strata(
+    strata = proc,
+    .tbl_fun =
+      ~ .x %>%
+  tbl_summary(
+    by = Oversample,
+    type = list(
+      c("recall","accuracy") ~ 'continuous'),
+    statistic = list(all_continuous() ~ "{mean} ± {sd} ({min},{max})"),
+    digits = all_continuous() ~ 2
+  ) %>% 
+  #add_p() %>%
+  #bold_p() %>% 
+  #add_overall %>%
+  bold_labels )
 
 
 ```
