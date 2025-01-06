@@ -5,15 +5,17 @@ author: Michael Carnival, MS and Achraf Cohen, PhD
 bibliography: ref.bib
 execute: 
   enabled: true
+self-contained-math: true
 format:
     revealjs:
+        embed-resources: true
         theme: [default, niu-dark.scss]
         logo: img/logo_uwftr.png
         footer: "Joint Mathematics Meetings | Jan 8-11, 2025 | Seattle"
         slide-number: c
         menu:
             numbers: true
-        chalkboard: true
+        #chalkboard: true
         scrollable: true
         preview-links: false
         view-distance: 10
@@ -41,7 +43,7 @@ format:
           margin-left: 0
         embed-resources: true
         page-layout: full
-my-custom-stuff:
+
 ---
 
 ## Outline
@@ -213,7 +215,22 @@ Link: <https://bioinformatics.mdanderson.org/public-datasets/>
 
 ```{r}
 library(gtsummary)
-res = read.csv("MS_wavelet_reserach/final_result.csv")
+library(tidyverse)
+library(jtools)
+library(ggforce)
+
+res = read.csv("MS_wavelet_reserach/final_result.csv") %>% 
+  mutate(wsize= 2^J.Setting) 
+
+res %>% 
+  select(model,precision, recall, F1.score, accuracy_train, accuracy_test, wavelet) %>%
+  pivot_longer(cols=-c(model,wavelet), names_to = "metric", values_to = "value") %>% 
+  ggplot(aes(x=metric,y=value, col=wavelet)) +
+  geom_violin()+
+  geom_sina()+
+  theme_apa()
+
+
 ```
 
 ## References {.tiny}
