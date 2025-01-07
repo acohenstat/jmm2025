@@ -315,6 +315,30 @@ The larger the sample size, the higher the average accuracy. (not controlling fo
 
 ## Results {.smaller}
 
+```{r}
+res |> 
+  filter(wavelet !=  "none") %>% 
+  mutate(wavelet = droplevels(wavelet)) %>% 
+  select(model, proc, wavelet, accuracy) -> resw
+
+resw %>% 
+  ggplot(aes(x=wavelet,y=accuracy)) +
+  #geom_point()+
+  stat_summary(geom = "point",
+               fun = mean,
+               size=4)+
+  geom_smooth(method = "lm")+
+  labs(y= "Average value")+
+  #scale_x_continuous(breaks = unique(resw$wavelet))+
+  theme_apa()+
+  #facet_wrap(~model)+
+  labs(title="Accuracy across Wavelets",
+       x="Wavelet Family")
+
+```
+
+Large variation accross wavelets basis.
+
 ## Conclusions {.smaller}
 
 - The wavelet coefficients do not always lead to improved performance. 
@@ -326,6 +350,7 @@ Future work
 - Enhance the evaluation using Monte Carlo simulation.
 - Identify new datasets to test the methodology.
 - Incorporate additional wavelet families.
+- Run a statisitcal model to understand better the association between performance and PROCs, window size, etc.
 
 
 ## Thank you {.smaller}
