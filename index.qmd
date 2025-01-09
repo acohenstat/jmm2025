@@ -1,7 +1,7 @@
 ---
 title: On wavelet-based features for classifying mass spectrometry data
 subtitle: CSDA Lab, Mathematics and Statistics Department, University of West Florida
-author: Michael Carnival, MS and Achraf Cohen, PhD
+author: Michael Carnival (mentored by Dr. Achraf Cohen)
 bibliography: ref.bib
 execute: 
   enabled: true
