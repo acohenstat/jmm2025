@@ -1,26 +1,26 @@
 {
-    "id": "1F4080CF",
+    "id": "8C8F11DA",
     "path": "~/Documents/jmm/.gitignore",
     "project_path": ".gitignore",
     "type": "gitignore",
-    "hash": "0",
+    "hash": "4043607152",
     "contents": "",
     "dirty": false,
-    "created": 1736444070828.0,
+    "created": 1736445933594.0,
     "source_on_save": false,
     "relative_order": 1,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "2,10",
+        "cursorPosition": "4,0",
         "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1736444074,
+    "lastKnownWriteTime": 1736445980,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1736444074623,
+    "last_content_update": 1736445980330,
     "read_only": false,
     "read_only_alternatives": []
 }
