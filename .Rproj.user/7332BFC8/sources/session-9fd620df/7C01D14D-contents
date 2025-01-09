@@ -1,0 +1,369 @@
+---
+title: On wavelet-based features for classifying mass spectrometry data
+subtitle: CSDA Lab, Mathematics and Statistics Department, University of West Florida
+author: Michael Carnival (mentored by Dr. Achraf Cohen)
+bibliography: ref.bib
+execute: 
+  enabled: true
+self-contained-math: true
+format:
+    revealjs:
+        embed-resources: true
+        theme: [default, niu-dark.scss]
+        logo: img/logo_uwftr.png
+        footer: "Joint Mathematics Meetings | Jan 8-11, 2025 | Seattle"
+        slide-number: c
+        menu:
+            numbers: true
+        #chalkboard: true
+        scrollable: true
+        preview-links: false
+        view-distance: 10
+        mobile-view-distance: 10
+        auto-animate: true
+        auto-play-media: true
+        auto-stretch: false
+        code-overflow: wrap
+        highlight-style: atom-one
+        mermaid: 
+          theme: neutral
+          fontFamily: arial
+          curve: linear
+    # html:
+    #     theme: [default, niu-dark.scss]
+    #     logo: img/logo_niu_dark.png
+    #     date: "2025"
+    #     toc: true
+    #     code-overflow: scroll
+    #     highlight-style: atom-one
+    #     mermaid: 
+    #       theme: neutral
+    #       fontFamily: arial
+    #       curve: linear
+    #       margin-left: 0
+    #     embed-resources: true
+    #     page-layout: full
+---
+
+## Outline
+
+-   Introduction
+-   Related Work
+-   Methods
+-   Results
+-   Conclusions
+
+## Introduction
+
+High dimensional data refers to data with large number of features (co-variates) $p$, formally we can write data is $\mathbf{X} \in \mathbb{R} ^{n\times p}$:
+
+$$
+p \gg n, \tag{1}
+$$ where $n$ is the number of observations.
+
+## Introduction
+
+In this context, many challenges arise:
+
+-   Sparse Data
+-   Overfitting
+-   Feature Redundancy and Correlation
+-   Increased Training and Modeling time
+-   Difficultly in Visualization
+-   Class Imbalance
+-   Noisy Features
+-   ...
+
+## Introduction
+
+Some solutions in the literature:
+
+-   Principal Component Analysis (PCA) [@jolliffe2002principal],
+-   t-Distributed Stochastic Neighbor Embedding (t-SNE) [@vandermaaten2008visualizing]
+-   Uniform Manifold Approximation and Projection (UMAP) [@mcinnes2020umapuniformmanifoldapproximation]
+-   Regularizations such as $L1$ (Lasso) [@tibshirani1996regression] and $L2$ (Ridge, Tikhonov) [@hoerl1970ridge]
+-   Feature Selection such as mutual information [@fleuret2004fast]
+
+## The problem in hand {.smaller}
+
+Our data is a mass spectrum signal data (functional data).
+
+-   $p >90000$ features or dimensions and $p <100$ subjects or observations
+
+```{r}
+#| fig-align: center
+#| fig-width: 8
+#| fig-height: 2
+library(tidyverse)
+library(jtools)
+ggplot(read.csv("MS_wavelet_reserach/Cancer/PO150.csv")[1:40000,],aes(x=M.Z, y=Intensity)) +
+  geom_line() +
+  labs(x="Mass-to-Charge Ratio (m/z)")+
+  theme_apa()
+```
+
+-   Our goal is develop a methodology to classify the functional data, such as cancer mass spectrum data (Cancer is the second leading cause of death in the world after heart disease)
+-   Our focus is to leverage the capabilities of **Wavelet Analysis**.
+
+## Wavelet Analysis {.smaller}
+
+The Fourier Transform of a signal $x(t)$ can be expressed as:
+
+$$
+X(f)= \int_{-\infty}^{\infty} x(t) e^{i2 \pi ft} dt \tag{2}
+$$($e^{ix}= \cos x + i \sin x$, Euler's formula); $f$ is the frequency domain.
+
+The Wavelet Transform of a signal $x(t)$ can be given as:
+
+$$
+WT(s,\tau)= \frac{1}{\sqrt s}\int_{-\infty}^{\infty} x(t) \psi^*\big(\frac{t-\tau}{s}\big) dt, \tag{3}
+$$
+
+where $\psi^*(t)$ denotes the complex conjugate of the base wavelet $\psi(t)$); $s$ is the scaling parameter, and $\tau$ is the location parameter.
+
+Example: Morlet Wavelet $\psi(t) = e^{i2 \pi f_0t} e^{-(\alpha t^2/\beta^2)}$, with the parameters $f_0$, $\alpha$, $\beta$ all being constants.
+
+## Wavelet Families {.smaller}
+
+![](img/wavef.png){fig-align="center" width="800" height="650"}
+
+## Discrete Wavelet Transform {.smaller}
+
+![](img/wave2.png){fig-align="center" width="800" height="450"}
+
+## Related Work {.smaller}
+
+-   Ovarian cancer detection [@ovarian2005]: A combination of *Binning*, *Kolmogorov-Smirnov test*, *discrete wavelet transform*, and *support vector machines.*
+
+-   Proteomic profile with bi-orthogonal discrete wavelet transform [@schleif2009support]: A combination of *outlier detection-centroied-based*, *recalibration*, baseline correction (top-hat filter), *Kolmogorov-Smirnov test, discrete wavelet transform bior 3.7*, and *support vector machines.*
+
+-   Ovarian cancer detection using peaks and discrete wavelet transform [@du2009wavelet]: A combination of *discrete wavelet transform*, *thresholding*, *peak detection* using MAD, *Kolmogorov-Smirnov test, bagging predictor*.
+
+## Related Work {.smaller}
+
+-   Ovarian cancer classification using wavelets and genetic algorithm [@nguyen2015mass]: A combination of Haar *discrete wavelet transform*, *genetic algorithms.*
+
+-   Breat cancer mass spectrum classification [@Cohen2018]: A combination of *segmentation, discrete wavelet transform, statistical features on the coefficients, PCA-T2 Hotelling statistic, SVM.*
+
+-   Ovarian cancer mass spectrum classification [@vimalajeewa2023early]: A combination of *Daubechies-7 wavelet transform, sample variance and distance variance, Fisher’s criterion for feature extraction, SVM, KNN, and Logistic regression.*
+
+## Methods {.smaller}
+
+A workflow for ML is the following:
+
+1.  Data Collection
+
+2.  Data **Processing**: Clean, Explore, Prepare, Transform
+
+3.  Modeling: Develop, Train, Validate, and Evaluate,
+
+4.  Deployment: Deploy, Monitor and Update
+
+5.  Go to 1.
+
+We designed a statistical experiment to evaluation 4 different **processing** approaches.
+
+## Methods {.smaller}
+
+Variables of the experimental design:
+
+-   Four pre-processing techniques.
+
+    -   5 window sizes.
+
+    -   Two are wavelet-based and two are not.
+
+    -   10 wavelets families
+
+-   Four ML Models: Logistic Regression, Support Vector Machine, Random Forest, and XGboost.
+
+-   Two sampling: up and no sampling to overcome the imbalance classes
+
+A total of 8800 models were run.
+
+## Methods {.smaller}
+
+-   Processing 1 (PROC1): The feature space includes mean, variance, energy, coefficient of variation, Skewness, and Kurtosis; wavelet transform.
+
+    ![](img/acohen2018.jpg){fig-align="center" width="550" height="300"}
+
+-   Processing 2 (PROC2): Same as PROC1 but the feature space will include the first 10 autocorrelation coefficients.
+
+-   Processing 3 (PROC3): Same as PROC1 but without the wavelet transform.
+
+-   Processing 4 (PROC4): Same as PROC2 but without the wavelet transform.
+
+## Methods {.smaller}
+
+#### The PCA-Hotelling $T^2$ statistic
+
+Consider a normalized data matrix, with $p$ variables and $N$ observations:
+
+$$
+\textbf{Z}= \left(\begin{array}{cccc}z_{11} & z_{12} & \dots &z_{1p}\\ z_{21} & z_{22} & \dots &z_{2p}\\  \vdots & \vdots & \ddots & \vdots \\ z_{N1} & z_{N2} & \dots & z_{Np}\end{array}\right)
+$$
+
+The covariance matrix of $Z$ can be approximated as:
+
+$$
+S= \frac{1}{N-1}Z^{T}Z= P \Lambda P^{T}
+$$
+
+where $\Lambda= diag (\lambda_1, \lambda_2, ..., \lambda_p)$ with $\lambda_1 \ge \lambda_2 \ge ..., \ge \lambda_p$. $\lambda_i$ are the eigenvalues and P are the eigenvectors of $S$.
+
+## Methods {.smaller}
+
+#### The PCA-Hotelling $T^2$ statistic
+
+According to $\lambda_i$'s, $P$ and $\Lambda$ could be divided into a feature space (\textit{feat}) and a residual space (\textit{res}). We can then rewrite $P$ and $\Lambda$ as follows:
+
+$$
+P= \left[\begin{array}{cc} P_{feat} & P_{res}\end{array}\right]
+$$
+
+$$
+\Lambda= \left[\begin{array}{cc}\Lambda_{feat} & 0 \\ 0 & \Lambda_{res}\end{array}\right]
+$$
+
+The Hotelling $T^2$ statistic can then be computed as follows:
+
+$$
+{T^2}= Z P_{feat} \Lambda^{-1}_{feat} P^T_{feat} Z^{T} \tag{4}
+$$
+
+where $T^2$ is the Hotelling statistic calculated into the multivariate feature space of the principal component analysis, and $P^T$ is the transpose of $P$.
+
+## Methods
+
+The performance metrics utilized were:
+
+-   Recall
+-   Precision
+-   F1-score
+-   Accuracy
+
+## Data sets
+
+-   Low-mass range SELDI spectra
+    -   50 cancer
+    -   30 normal
+
+Observed 32,768 m/z values / 33,885 m/z values
+
+Link: <https://bioinformatics.mdanderson.org/public-datasets/>
+
+## Results {.smaller}
+
+```{r}
+library(gtsummary)
+library(tidyverse)
+library(jtools)
+library(ggforce)
+
+res = read.csv("MS_wavelet_reserach/final_result.csv") %>% 
+  mutate(wsize= 2^J.Setting) |> 
+  mutate(accuracy= accuracy_test, 
+         proc=Preprocess,
+         proc = recode(proc, preprocess1 = 'PROC1', 
+                       preprocess2 = 'PROC2',
+                       preprocess3 = 'PROC3',
+                       preprocess4 = 'PROC4'),
+         Oversample = recode(Oversample, 
+                             "0" = 'Nosampling', 
+                             "1" = 'Upsampling'),
+         across(where(is.character),as.factor)) |> 
+  select(res_id, model, wavelet, Oversample, proc, wsize, precision, recall, F1.score, accuracy) 
+
+res |> 
+  select(model, proc, precision, recall, F1.score, accuracy) |> 
+  pivot_longer(cols=-c(model,proc), names_to = "metric", values_to = "value") %>% 
+  ggplot(aes(x=metric,y=value, col=proc)) +
+  #geom_point()+
+  stat_summary(geom = "point",
+               fun = mean,
+               size=4)+
+  labs(y= "Average value")+
+  theme_apa()+
+  facet_wrap(~model)+
+  labs(title="Performance Metric Values across Model and PROC Types",
+       x="Metric")
+```
+
+PROC3 seems to have the highest values across all models and metrics.
+
+## Results {.smaller}
+
+```{r}
+res |> 
+  select(model, proc, wsize, accuracy) |> 
+  ggplot(aes(x=wsize,y=accuracy)) +
+  #geom_point()+
+  stat_summary(geom = "point",
+               fun = mean,
+               size=4)+
+  geom_smooth(method = "lm")+
+  labs(y= "Average value")+
+  scale_x_continuous(breaks = unique(res$wsize))+
+  theme_apa()+
+  #facet_wrap(~model)+
+  labs(title="Accuracy across Window Size",
+       x="Window Size")
+
+```
+
+The larger the sample size, the higher the average accuracy. (not controlling for other variables)
+
+## Results {.smaller}
+
+```{r}
+res |> 
+  filter(wavelet !=  "none") %>% 
+  mutate(wavelet = droplevels(wavelet)) %>% 
+  select(model, proc, wavelet, accuracy) -> resw
+
+resw %>% 
+  ggplot(aes(x=wavelet,y=accuracy)) +
+  #geom_point()+
+  stat_summary(geom = "point",
+               fun = mean,
+               size=4)+
+  geom_smooth(method = "lm")+
+  labs(y= "Average value")+
+  #scale_x_continuous(breaks = unique(resw$wavelet))+
+  theme_apa()+
+  #facet_wrap(~model)+
+  labs(title="Accuracy across Wavelets",
+       x="Wavelet Family")
+
+```
+
+Large variation accross wavelets basis.
+
+## Conclusions {.smaller}
+
+- The wavelet coefficients do not always lead to improved performance. 
+
+- Additionally, **autocorrelations** do not appear to be effective predictors, which is anticipated for wavelet coefficients.
+
+Future work
+
+- Enhance the evaluation using Monte Carlo simulation.
+- Identify new datasets to test the methodology.
+- Incorporate additional wavelet families.
+- Run a statisitcal model to understand better the association between performance and PROCs, window size, etc.
+
+
+## Thank you {.smaller}
+
+
+- Contact: M.C.: mjc106@students.uwf.edu and A.C.: acohen@uwf.edu 
+<!-- - ![](img/csda){fig-align="left" width=100}  -->
+- *Announcement*: Special Issue on Statistical Monitoring and AI Models. **Deadline June 2025.**
+
+![](img/special){fig-align="center" width=300} 
+
+
+## References {.tiny}
+
+::: {#refs}
+:::
